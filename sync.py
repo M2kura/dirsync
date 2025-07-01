@@ -1,36 +1,17 @@
-# Please implement a program that synchronizes two folders: source and replica. The program should maintain a full, identical copy of source folder at replica folder.
-
-# Synchronization must be one-way: after the synchronization content of the replica folder should be modified to exactly match content of the source folder.
-
-# Synchronization should be performed periodically, but limited amount of times. Program should stop after the last synchronization.
-
-# File creation/copying/removal operations as well as error messages should be logged to a file and to the console output.
-
-# It is undesirable to use third-party libraries that implement folder synchronization.
-
-# It is allowed (and recommended) to use libraries implementing other well-known algorithms. For example, there is no point in implementing yet another function that calculates MD5 if you need it for the task – it is perfectly acceptable to use a built-in library.
-
-# 1) Expect command line arguments in a fixed aforementioned order.
-# 2) Write all code in a single file. This is not a production-level practice, but for the purpose of compliance with environment limitations we ask you to do this. Still, we encourage you to build your solution with good structure: you should use functions and classes as you see fit.
-# 3) Use main() function as your entry point. This function will be called from the environment during validation. Command line arguments can be accessed as usual.
-# 4) Do not use sys.exit calls.
-# 5) Solution must be singlethreaded.
-# 6) Solution must not read input. As it was mentioned before the task will undergo automated validation that doesn't interact with the code via input. It will only pass command line arguments.
-# 7) Solution must not have any infinite loops.
-# 8) Solution must be implemented using only standard Python libraries.
-# 9) Solution must gracefully finish its work in any case.
-
 import sys
 import os
 import time
 from datetime import datetime
 import shutil
 
+LOG_PATH = None
+
 def log(message: str):
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     full_message = f"[{timestamp}] {message}"
-    with open("logs.txt", "a") as f:
-        f.write(full_message + "\n")
+    if LOG_PATH:
+        with open(LOG_PATH, "a") as f:
+            f.write(full_message + "\n")
     print(full_message)
 
 def validate(src: str, rep: str, interval: int, count: int):
@@ -89,6 +70,8 @@ def copyAll(src: str, rep: str):
                 log(f"Failed to copy file {src_file} to {rep_file}: {e}")
 
 def main(src: str, rep: str, interval: int, count: int, logs: str):
+    global LOG_PATH
+    LOG_PATH = logs
     if not validate(src, rep, interval, count):
         return
     log(f"Starting synchronization. Source: {src}, Replica: {rep}, Interval: {interval} seconds, Count: {count}")
@@ -101,6 +84,6 @@ def main(src: str, rep: str, interval: int, count: int, logs: str):
 
 if __name__ == "__main__":
     if len(sys.argv) != 6:
-        log("Usage: python sync.py <srcPath> <repPath> <interval> <count> <logPath>")
+        print("Usage: python sync.py <srcPath> <repPath> <interval> <count> <logPath>")
     else:
         main(sys.argv[1], sys.argv[2], int(sys.argv[3]), int(sys.argv[4]), sys.argv[5])
